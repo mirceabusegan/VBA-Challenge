@@ -1,0 +1,104 @@
+sub stock_analysis
+    'Set dimmensions
+    Dim total As Double
+    Dim i as Long
+    Dim change as Double 
+    Dim v as Integer
+    Dim start as Long
+    Dim percentageChange as Double 
+    Dim days as Integer
+    Dim dailyChange as Double
+    Dim averagechange as Double
+
+    ' Header
+    Range("I1").value = "Ticker"
+    Range("J1").Value = "Quarterly Change"
+    Range("K1").Value = "Percent Change"
+    Range("L1").Value = "Total Stock Volume"
+    Range("P1").Value = "Ticker"
+    Range("Q1").Value = "Value"
+    Range("O2").Value = "Greatest % Increase"
+    Range("O3").Value = "Greatest % Decrease"
+    Range("O4").Value = "Greatest Total Volume"
+
+    'Initialize the variables 
+    v = 0
+    total = 0
+    change = 0 
+    start = 2
+    
+    'identify the last row containing data
+    numbers_of_rows = Cells(Rows.Count, "A").End(xlUp).row
+    For i = 2 to numbers_of_rows
+        'If ticker changes then print results 
+        if Cells(i+1,1).value<>Cells(i,1).value then
+            total = total + cells(i,7).value
+        if total = 0 then 
+            Range("I" & 2 + v).Value = Cells(i, 1).Value
+            Range("J" & 2 + v).Value = 0
+            Range("K" & 2 + v).Value = "%" & 0
+            Range("L" & 2 + v).Value = 0
+        Else
+            ' Find First non zero starting value
+                If Cells(start, 3) = 0 Then
+                    For find_value = start To i
+                        If Cells(find_value, 3).Value <> 0 Then
+                            start = find_value
+                            Exit For
+                        End If
+                     Next find_value
+                End If
+                ' Calculate Change
+                change = (Cells(i, 6) - Cells(start, 3))
+                percentChange = change / Cells(start, 3)
+
+                ' start of the next stock ticker
+                start = i + 1
+
+                ' print the results
+                Range("I" & 2 + v).Value = Cells(i, 1).Value
+                Range("J" & 2 + v).Value = change
+                Range("J" & 2 + v).NumberFormat = "0.00"
+                Range("K" & 2 + v).Value = percentChange
+                Range("K" & 2 + v).NumberFormat = "0.00%"
+                Range("L" & 2 + v).Value = total
+                 colors positives green and negatives red
+                Select Case change
+                    Case Is > 0
+                        Range("J" & 2 + v).Interior.ColorIndex = 4
+                    Case Is < 0
+                        Range("J" & 2 + v).Interior.ColorIndex = 3
+                    Case Else
+                        Range("J" & 2 + v).Interior.ColorIndex = 0
+                End Select
+
+            End If
+            'Reset variables for new stock 
+            total = 0
+            change = 0
+            v = v + 1
+            days = 0
+
+        ' If ticker is still the same add results
+        Else
+            total = total + Cells(i, 7).Value
+
+        End If
+        Next i
+
+    ' take the max and min and place them in a separate part in the worksheet
+    Range("Q2") = "%" & WorksheetFunction.Max(Range("K2:K" & rowCount)) * 100
+    Range("Q3") = "%" & WorksheetFunction.Min(Range("K2:K" & rowCount)) * 100
+    Range("Q4") = WorksheetFunction.Max(Range("L2:L" & rowCount))
+
+    ' returns one less because header row not a factor
+    increase_number = WorksheetFunction.Match(WorksheetFunction.Max(Range("K2:K" & rowCount)), Range("K2:K" & rowCount), 0)
+    decrease_number = WorksheetFunction.Match(WorksheetFunction.Min(Range("K2:K" & rowCount)), Range("K2:K" & rowCount), 0)
+    volume_number = WorksheetFunction.Match(WorksheetFunction.Max(Range("L2:L" & rowCount)), Range("L2:L" & rowCount), 0)
+
+    'Final stock for  total, greatest % of increase and decrease, and average
+    Range("P2") = Cells(increase_number + 1, 9)
+    Range("P3") = Cells(decrease_number + 1, 9)
+    Range("P4") = Cells(volume_number + 1, 9)
+
+End Sub
